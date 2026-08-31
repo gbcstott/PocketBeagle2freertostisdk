@@ -1,0 +1,53 @@
+Building and booting the Chalandi Pocketbeagle 2 nosdk bare metal code
+
+Building on a X86-64 system running Ubuntu.
+
+Tools needed:
+You will need the 64 bit version and the 32 bit version of the cross compiler for ARM. You can download them directly from here: https://gitlab.arm.com/tooling/gnu-toolchains-for-arm
+
+arm-gnu-toolchain-<version number>-x86_64-aarch64-none-elf
+arm-gnu-toolchain-<version number-x86_64-arm-none-eabi
+
+Update your PATH to add entries to the bin directory for each cross compiler
+
+You will need a version of GNU binutils 2.39 or greater. You can check what you have by doing this command: ld -v.
+If you have an older version and cannot upgrade, then remove line 202 "-Wl,--no-warn-rwx-segments" from the makefile.
+
+Download the code from this location on GITHUB:
+
+https://github.com/Chalandi/Baremetal_TI_AM6254_multicore_nosdk
+
+Follow the instructions in the README.md file to build the 3 applications (A53, M4F and R5F).
+
+Copy the three ".bin" files from the Output directory to the Tools/sd_card directory.
+
+The names of the files that are built have an underscore before the "baremetal" word, however in the config.txt file located in the sd_card directory the lines for the m4f and r5f file names are missing that underscore.
+Edit the config file to add the underscore or change the file names to match the names in the config.txt file.
+
+Format a sdcard as FAT32 with a Bootable partition.
+
+Copy the sd-card directory files to the sdcard's bootable partition. There are 5 file (tiboot3.bin, config.txt, a53*.bin, m4f*.bin and r5f*.bin).
+
+Put the sdcard into the pocketbeagle 2 with the contacts facing the board.
+
+If you have a FTDI or Raspberry pi debug probe connected to the board's 3 pin JST-SH connector, you will be able to see the output from the Secondary Boot Loader(SBL) which is the tiboot3.bin program. Parameters for the terminal emulator (for example PuTTY) are: BAUD  115200, Data length 8, Stop bit 1, Parity None, Flow control None.
+
+Apply power to the board.
+
+Once loaded you will see the 4 LEDS on the board flashing.
+
+Other minor issue:
+
+The Clean.sh does not do anything. 
+Add the following line before the "make clean" line 
+export CORE_FAMILY=${1,,}
+
+and add the following line to the makefile just after the CLEAN: line 303. The line below is a copy of line 291.
+
+@$(if $(filter $(CORE_FAMILY),$(ALLOWED_CORES)),,$(error Error: the Entered CORE_FAMILY '$(CORE_FAMILY)' is not supported! Allowed values are: $(ALLOWED_CORES)))$
+
+NOTE: There needs to be a real tab in front of the above line.
+
+When using the clean.sh you need to specify which application you want cleaned. For example: ./clean.sh a53
+
+You can make changes to the application in the Code/Appli/Core directories.
